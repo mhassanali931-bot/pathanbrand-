@@ -17,12 +17,13 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="PATHAN BRAND">
     
-    <!-- Icons for Apple & Chrome Devices -->
+    <!-- Standard Favicons for Android & Apple Devices -->
+    <link rel="icon" type="image/jpeg" sizes="512x512" href="https://i.ibb.co/6ccm1Y1D/d50681fc-182a-4bdd-bc03-012542f2907d.jpg">
     <link rel="apple-touch-icon" sizes="512x512" href="https://i.ibb.co/6ccm1Y1D/d50681fc-182a-4bdd-bc03-012542f2907d.jpg">
-    <link rel="icon" type="image/png" sizes="512x512" href="https://i.ibb.co/6ccm1Y1D/d50681fc-182a-4bdd-bc03-012542f2907d.jpg">
+    <link rel="shortcut icon" href="https://i.ibb.co/6ccm1Y1D/d50681fc-182a-4bdd-bc03-012542f2907d.jpg">
     
-    <!-- 🛠️ Manifest Code with New Logo Injection -->
-    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22PATHAN+BRAND%22%2C%22short_name%22%3A%22PathanBrand%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%23000000%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fi.ibb.co%2F6ccm1Y1D%2Fd50681fc-182a-4bdd-bc03-012542f2907d.jpg%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fjpeg%22%2C%22purpose%22%3A%22any+maskable%22%7D%5D%7D">
+    <!-- 🛠️ Hardcoded Direct Manifest for Chrome to Force Icon Load -->
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22PATHAN+BRAND%22%2C%22short_name%22%3A%22PathanBrand%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%23000000%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fi.ibb.co%2F6ccm1Y1D%2Fd50681fc-182a-4bdd-bc03-012542f2907d.jpg%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fjpeg%22%7D%2C%7B%22src%22%3A%22https%3A%2F%2Fi.ibb.co%2F6ccm1Y1D%2Fd50681fc-182a-4bdd-bc03-012542f2907d.jpg%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fjpeg%22%7D%5D%7D">
 
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
@@ -34,7 +35,7 @@
         
         /* --- LOGO & HEADER STYLING --- */
         .header { background-color: #000; color: #fff; text-align: center; padding: 10px 15px; display: flex; align-items: center; justify-content: center; gap: 10px; position: sticky; top: 0; z-index: 50; }
-        .brand-logo { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; background-white; }
+        .brand-logo { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; background: white; }
         .brand-text { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
         
         .container { padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -167,7 +168,7 @@
                 setTimeout(() => {
                     splash.style.display = 'none';
                 }, 500); 
-            }, 2500); // 2.5 Seconds tak logo dikhega phir gayb hoga
+            }, 2500); 
         });
 
         // --- DATABASE SETUP (IndexedDB) ---
