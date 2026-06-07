@@ -4,23 +4,23 @@
     <meta charset="UTF-8">
     <title>PATHAN BRAND.</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; padding: 15px; }
+        body { font-family: sans-serif; background: #f4f4f4; padding: 15px; margin: 0; }
         .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         input { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; box-sizing: border-box; }
         button { width: 100%; padding: 10px; background: black; color: white; border: none; cursor: pointer; margin-top: 5px; }
-        .product-img { width: 100%; height: 250px; object-fit: contain; background: #eee; }
-        .nav-btn { background: #333; margin-top: 5px; }
+        .product-img { width: 100%; height: 250px; object-fit: contain; background: #eee; cursor: pointer; }
+        #adminPanel { display: none; border: 2px solid green; padding: 10px; }
     </style>
 </head>
 <body>
 
     <div id="loginSection" class="card">
-        <h3>Login</h3>
+        <h3>Login (Pathan Brand)</h3>
         <input type="text" id="mobileInput" placeholder="03XXXXXXXXX" maxlength="11">
         <button onclick="loginUser()">Login</button>
     </div>
 
-    <div id="adminPanel" class="card" style="display:none;">
+    <div id="adminPanel" class="card">
         <h3>🔑 CEO OFFICE</h3>
         <input type="text" id="pName" placeholder="Product Name">
         <input type="number" id="pPrice" placeholder="Price">
@@ -36,23 +36,25 @@
         let products = JSON.parse(localStorage.getItem("products") || "[]");
 
         function loginUser() {
-            if(/^03\d{9}$/.test(document.getElementById("mobileInput").value)) {
+            let m = document.getElementById("mobileInput").value;
+            if(/^03\d{9}$/.test(m)) {
                 localStorage.setItem("userLoggedIn", "true");
                 location.reload();
-            } else { alert("Invalid Pakistani Number!"); }
+            } else { alert("Sahi Pakistani Mobile Number likhein!"); }
         }
 
         function checkAdmin() {
+            if(localStorage.getItem("userLoggedIn") !== "true") return alert("Pehle Login karein!");
             let pass = prompt("Enter CEO Password:");
             if(pass === "p@th@nk1ng") {
                 localStorage.setItem("isAdmin", "true");
-                location.reload();
-            } else { alert("Wrong Password!"); }
+                document.getElementById("adminPanel").style.display = "block";
+            } else { alert("Galat Password!"); }
         }
 
         function saveProduct() {
             let files = document.getElementById("pImages").files;
-            if(files.length === 0) return alert("Select images!");
+            if(files.length === 0) return alert("Images select karein!");
             
             let readerPromises = Array.from(files).map(file => new Promise(res => {
                 let reader = new FileReader();
@@ -74,9 +76,10 @@
         }
 
         function clearProducts() {
-            if(confirm("Delete all?")) { localStorage.removeItem("products"); location.reload(); }
+            if(confirm("Saare products delete kar dein?")) { localStorage.removeItem("products"); location.reload(); }
         }
 
+        // INIT
         if(localStorage.getItem("userLoggedIn") === "true") {
             document.getElementById("loginSection").style.display = "none";
             if(localStorage.getItem("isAdmin") === "true") document.getElementById("adminPanel").style.display = "block";
@@ -87,7 +90,7 @@
                         <img src="${p.images[p.idx]}" class="product-img" onclick="window.open('${p.images[p.idx]}')">
                         <h3>${p.name}</h3>
                         <p>Price: Rs. ${p.price}</p>
-                        <button class="nav-btn" onclick="nextImg(${i})">Next Image (${p.idx + 1}/${p.images.length})</button>
+                        <button onclick="nextImg(${i})">Next Image (${p.idx + 1}/${p.images.length})</button>
                     </div>`;
             });
         }
