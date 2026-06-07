@@ -7,7 +7,6 @@
     <style>
         body { font-family: sans-serif; background: #f4f4f4; padding: 15px; margin: 0; }
         .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        h3 { margin-top: 0; color: #333; }
         input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         button { width: 100%; padding: 12px; background: #000; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .admin-btn { position: fixed; bottom: 20px; right: 20px; width: auto; background: #444; }
@@ -26,7 +25,7 @@
         <h3>CEO OFFICE - Add Product</h3>
         <input type="text" id="pName" placeholder="Product Name">
         <input type="number" id="pPrice" placeholder="Price">
-        <input type="file" id="pImages" multiple accept="image/*">
+        <input type="file" id="pImages" accept="image/*">
         <button onclick="saveProduct()" style="background: green;">Save Product</button>
     </div>
 
@@ -35,20 +34,34 @@
     <button class="admin-btn" onclick="checkAdmin()">🔑 Admin</button>
 
     <script>
-        // 1. LOGIN LOGIC
+        // PAGE LOAD
+        window.onload = function() {
+            if(localStorage.getItem("userLoggedIn") === "true") {
+                document.getElementById("loginSection").style.display = "none";
+                displayProducts();
+            }
+            if(localStorage.getItem("isAdmin") === "true") {
+                document.getElementById("adminPanel").style.display = "block";
+            }
+        };
+
+        // LOGIN
         function loginUser() {
             let m = document.getElementById("mobileInput").value;
             if(/^03\d{9}$/.test(m)) {
                 localStorage.setItem("userLoggedIn", "true");
-                alert("Login Successful!");
                 location.reload();
             } else {
-                alert("Enter a valid Pakistani mobile number (starting with 03)");
+                alert("Please enter a valid Pakistani number (e.g., 03001234567)");
             }
         }
 
-        // 2. ADMIN ACCESS
+        // ADMIN ACCESS
         function checkAdmin() {
+            if(localStorage.getItem("userLoggedIn") !== "true") {
+                alert("Pehle Login karein!");
+                return;
+            }
             let pass = prompt("Enter CEO Password:");
             if(pass === "p@th@nk1ng") {
                 localStorage.setItem("isAdmin", "true");
@@ -56,18 +69,17 @@
             } else { alert("Wrong Password!"); }
         }
 
-        // 3. SAVE PRODUCT
+        // SAVE PRODUCT
         function saveProduct() {
             let name = document.getElementById("pName").value;
             let price = document.getElementById("pPrice").value;
-            let files = document.getElementById("pImages").files;
+            let fileInput = document.getElementById("pImages");
             
-            if(!name || !price || files.length === 0) {
+            if(!name || !price || fileInput.files.length === 0) {
                 alert("Sab details fill karein!");
                 return;
             }
 
-            // Image to Base64 (saving in local storage for demo)
             let reader = new FileReader();
             reader.onload = function(e) {
                 let product = { name, price, img: e.target.result };
@@ -77,14 +89,14 @@
                 alert("Product Added!");
                 location.reload();
             };
-            reader.readAsDataURL(files[0]);
+            reader.readAsDataURL(fileInput.files[0]);
         }
 
-        // 4. LOAD PRODUCTS
-        if(localStorage.getItem("userLoggedIn") === "true") {
-            document.getElementById("loginSection").style.display = "none";
+        // DISPLAY PRODUCTS
+        function displayProducts() {
             let products = JSON.parse(localStorage.getItem("products") || "[]");
             let container = document.getElementById("product-container");
+            container.innerHTML = "";
             products.forEach(p => {
                 container.innerHTML += `
                     <div class="card">
@@ -93,11 +105,6 @@
                         <img src="${p.img}" class="product-img">
                     </div>`;
             });
-        }
-
-        // Show Admin Panel if already logged in
-        if(localStorage.getItem("isAdmin") === "true") {
-            document.getElementById("adminPanel").style.display = "block";
         }
     </script>
 </body>
