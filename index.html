@@ -6,83 +6,109 @@
     <title>PATHAN BRAND.</title>
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+        /* Auth Screen */
+        #authOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:none; flex-direction:column; justify-content:center; align-items:center; }
+        /* Layout */
         .main-wrapper { display: flex; padding-bottom: 70px; }
         .sidebar { width: 30%; background: #fff; height: 100vh; padding: 10px; border-right: 1px solid #ddd; position: sticky; top: 0; }
         .sidebar div { padding: 15px; cursor: pointer; border-bottom: 1px solid #eee; font-weight: bold; }
         .content-area { width: 70%; padding: 10px; }
-        
+        /* Product Card */
         .product-card { background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .product-img { width: 100%; height: 150px; object-fit: cover; border-radius: 5px; cursor: pointer; }
+        .product-img { width: 100%; height: 150px; object-fit: cover; border-radius: 5px; }
         .next-btn { background: #000; color: #fff; width: 100%; padding: 8px; margin-top: 5px; border: none; border-radius: 5px; cursor: pointer; }
         .delete-btn { background: red; color: #fff; width: 100%; padding: 8px; margin-top: 5px; border: none; border-radius: 5px; cursor: pointer; }
-        
+        /* Bottom Nav */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 60px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; z-index: 1000; }
-        .bottom-nav div { font-size: 10px; text-align: center; cursor: pointer; }
+        .bottom-nav div { font-size: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="main-wrapper">
-    <div class="sidebar">
-        <div onclick="location.reload()">🏠 All</div>
-        <div onclick="alert('Category feature coming soon!')">💄 Cosmetics</div>
-        <div onclick="alert('Category feature coming soon!')">👟 Shoes</div>
+    <div id="authOverlay">
+        <h2>🛍️ Pathan Brand Login</h2>
+        <input type="text" id="mobileInput" placeholder="Mobile Number" style="padding:10px; width:80%; border: 1px solid #ccc; border-radius: 5px;">
+        <button onclick="checkAuth()" style="padding:10px 30px; margin-top:15px; background:black; color:white; border:none; border-radius:5px;">Login / Register</button>
     </div>
-    <div class="content-area" id="product-container"></div>
-</div>
 
-<nav class="bottom-nav">
-    <div onclick="location.reload()">🏠 Home</div>
-    <div onclick="openAdmin()">👤 Admin</div>
-</nav>
+    <div class="main-wrapper">
+        <div class="sidebar">
+            <div onclick="location.reload()">🏠 Home</div>
+        </div>
+        <div class="content-area" id="product-container"></div>
+    </div>
 
-<script>
-    let db, products = [], inlineImgIndices = {};
-    const request = indexedDB.open("PathanBrandDB", 1);
-    
-    request.onupgradeneeded = e => { db = e.target.result; db.createObjectStore("products", { keyPath: "id", autoIncrement: true }); };
-    request.onsuccess = e => { db = e.target.result; loadProducts(); };
+    <nav class="bottom-nav">
+        <div onclick="location.reload()">🏠 Home</div>
+        <div onclick="openAdmin()">🔑 CEO OFFICE</div>
+    </nav>
 
-    function loadProducts() {
-        db.transaction("products").objectStore("products").getAll().onsuccess = e => {
-            products = e.target.result;
-            displayProducts();
-        };
-    }
-
-    function displayProducts() {
-        const container = document.getElementById('product-container');
-        container.innerHTML = '';
-        products.forEach((p, pIndex) => {
-            let idx = inlineImgIndices[pIndex] || 0;
-            container.innerHTML += `
-                <div class="product-card">
-                    <img src="${p.images[idx]}" id="prod-img-${pIndex}" class="product-img">
-                    <button class="next-btn" onclick="nextImg(${pIndex})">Next Image ▶</button>
-                    <h3>${p.name}</h3>
-                    <p>Rs. ${p.price}</p>
-                    <button class="delete-btn" onclick="deleteProduct(${p.id})">Delete Product</button>
-                </div>`;
-        });
-    }
-
-    function nextImg(pIndex) {
-        let p = products[pIndex];
-        if(!p.images.length) return;
-        inlineImgIndices[pIndex] = ( (inlineImgIndices[pIndex] || 0) + 1 ) % p.images.length;
-        document.getElementById(`prod-img-${pIndex}`).src = p.images[inlineImgIndices[pIndex]];
-    }
-
-    function deleteProduct(id) {
-        if(confirm("Delete this product?")) {
-            db.transaction("products", "readwrite").objectStore("products").delete(id).onsuccess = () => loadProducts();
+    <script>
+        let db, products = [], inlineImgIndices = {};
+        
+        // 1. Auth Check
+        if(!localStorage.getItem("isLoggedIn")) {
+            document.getElementById("authOverlay").style.display = "flex";
         }
-    }
 
-    function openAdmin() {
-        let pass = prompt("Admin Password:");
-        if(pass === "p@th@nk1ng") window.location.href = "admin.html"; // Ya jo bhi aapka admin file path hai
-    }
-</script>
+        function checkAuth() {
+            let m = document.getElementById("mobileInput").value;
+            if(m.length >= 10) {
+                localStorage.setItem("isLoggedIn", "true");
+                location.reload();
+            } else { alert("Sahi Mobile Number likhein!"); }
+        }
+
+        // 2. Database & Product Logic
+        const request = indexedDB.open("PathanBrandDB", 1);
+        request.onupgradeneeded = e => { e.target.result.createObjectStore("products", { keyPath: "id", autoIncrement: true }); };
+        request.onsuccess = e => { db = e.target.result; loadProducts(); };
+
+        function loadProducts() {
+            db.transaction("products").objectStore("products").getAll().onsuccess = e => {
+                products = e.target.result;
+                displayProducts();
+            };
+        }
+
+        function displayProducts() {
+            const container = document.getElementById('product-container');
+            const isAdmin = localStorage.getItem("isAdmin") === "true";
+            container.innerHTML = '';
+            products.forEach((p, pIndex) => {
+                let idx = inlineImgIndices[pIndex] || 0;
+                container.innerHTML += `
+                    <div class="product-card">
+                        <img src="${p.images[idx]}" id="prod-img-${pIndex}" class="product-img">
+                        <button class="next-btn" onclick="nextImg(${pIndex})">Next Image ▶</button>
+                        <h3>${p.name}</h3>
+                        <p>Price: Rs. ${p.price}</p>
+                        ${isAdmin ? `<button class="delete-btn" onclick="deleteProduct(${p.id})">Delete Product</button>` : ''}
+                    </div>`;
+            });
+        }
+
+        function nextImg(pIndex) {
+            let p = products[pIndex];
+            if(!p.images || p.images.length <= 1) return;
+            inlineImgIndices[pIndex] = ((inlineImgIndices[pIndex] || 0) + 1) % p.images.length;
+            document.getElementById(`prod-img-${pIndex}`).src = p.images[inlineImgIndices[pIndex]];
+        }
+
+        function deleteProduct(id) {
+            if(confirm("Kya aap waqai delete karna chahte hain?")) {
+                db.transaction("products", "readwrite").objectStore("products").delete(id).onsuccess = () => loadProducts();
+            }
+        }
+
+        function openAdmin() {
+            let p = prompt("Enter CEO OFFICE Password:");
+            if(p === "p@th@nk1ng") {
+                localStorage.setItem("isAdmin", "true");
+                alert("Admin Access Granted!");
+                location.reload();
+            } else { alert("Galat Password!"); }
+        }
+    </script>
 </body>
 </html>
