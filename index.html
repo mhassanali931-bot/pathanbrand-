@@ -2,22 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PATHAN BRAND.</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; padding: 15px; margin: 0; }
-        .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #000; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .admin-btn { position: fixed; bottom: 20px; right: 20px; width: auto; background: #444; }
-        .product-img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-top: 10px; }
-        .delete-btn { background: red; margin-top: 10px; }
+        body { font-family: sans-serif; background: #f4f4f4; padding: 15px; }
+        .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: black; color: white; border: none; cursor: pointer; margin-top: 5px; }
+        .product-img { width: 100%; height: 250px; object-fit: contain; background: #eee; }
+        .nav-btn { background: #333; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div id="loginSection" class="card">
-        <h3>Login to Pathan Brand</h3>
+        <h3>Login</h3>
         <input type="text" id="mobileInput" placeholder="03XXXXXXXXX" maxlength="11">
         <button onclick="loginUser()">Login</button>
     </div>
@@ -26,37 +24,25 @@
         <h3>🔑 CEO OFFICE</h3>
         <input type="text" id="pName" placeholder="Product Name">
         <input type="number" id="pPrice" placeholder="Price">
-        <input type="file" id="pImages" accept="image/*">
+        <input type="file" id="pImages" multiple accept="image/*">
         <button onclick="saveProduct()" style="background: green;">Add Product</button>
-        <hr style="margin: 20px 0;">
-        <button class="delete-btn" onclick="clearAllProducts()">Delete All Products</button>
+        <button onclick="clearProducts()" style="background: red;">Delete All Products</button>
     </div>
 
     <div id="product-container"></div>
-
-    <button class="admin-btn" onclick="checkAdmin()">Admin Panel</button>
+    <button onclick="checkAdmin()" style="position:fixed; bottom:10px; right:10px; width:auto;">Admin Access</button>
 
     <script>
-        window.onload = function() {
-            if(localStorage.getItem("userLoggedIn") === "true") {
-                document.getElementById("loginSection").style.display = "none";
-                displayProducts();
-            }
-            if(localStorage.getItem("isAdmin") === "true") {
-                document.getElementById("adminPanel").style.display = "block";
-            }
-        };
+        let products = JSON.parse(localStorage.getItem("products") || "[]");
 
         function loginUser() {
-            let m = document.getElementById("mobileInput").value;
-            if(/^03\d{9}$/.test(m)) {
+            if(/^03\d{9}$/.test(document.getElementById("mobileInput").value)) {
                 localStorage.setItem("userLoggedIn", "true");
                 location.reload();
-            } else { alert("Sahi Pakistani number likhein!"); }
+            } else { alert("Invalid Pakistani Number!"); }
         }
 
         function checkAdmin() {
-            if(localStorage.getItem("userLoggedIn") !== "true") return alert("Pehle Login karein!");
             let pass = prompt("Enter CEO Password:");
             if(pass === "p@th@nk1ng") {
                 localStorage.setItem("isAdmin", "true");
@@ -65,39 +51,43 @@
         }
 
         function saveProduct() {
-            let name = document.getElementById("pName").value;
-            let price = document.getElementById("pPrice").value;
-            let fileInput = document.getElementById("pImages");
+            let files = document.getElementById("pImages").files;
+            if(files.length === 0) return alert("Select images!");
             
-            if(!name || !price || fileInput.files.length === 0) return alert("Sab fields fill karein!");
+            let readerPromises = Array.from(files).map(file => new Promise(res => {
+                let reader = new FileReader();
+                reader.onload = e => res(e.target.result);
+                reader.readAsDataURL(file);
+            }));
 
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                let products = JSON.parse(localStorage.getItem("products") || "[]");
-                products.push({ name, price, img: e.target.result });
+            Promise.all(readerPromises).then(images => {
+                products.push({ name: document.getElementById("pName").value, price: document.getElementById("pPrice").value, images, idx: 0 });
                 localStorage.setItem("products", JSON.stringify(products));
                 location.reload();
-            };
-            reader.readAsDataURL(fileInput.files[0]);
+            });
         }
 
-        function clearAllProducts() {
-            if(confirm("Saare products delete kar dein?")) {
-                localStorage.removeItem("products");
-                location.reload();
-            }
+        function nextImg(pIdx) {
+            products[pIdx].idx = (products[pIdx].idx + 1) % products[pIdx].images.length;
+            localStorage.setItem("products", JSON.stringify(products));
+            location.reload();
         }
 
-        function displayProducts() {
-            let products = JSON.parse(localStorage.getItem("products") || "[]");
-            let container = document.getElementById("product-container");
-            container.innerHTML = "";
-            products.forEach(p => {
-                container.innerHTML += `
+        function clearProducts() {
+            if(confirm("Delete all?")) { localStorage.removeItem("products"); location.reload(); }
+        }
+
+        if(localStorage.getItem("userLoggedIn") === "true") {
+            document.getElementById("loginSection").style.display = "none";
+            if(localStorage.getItem("isAdmin") === "true") document.getElementById("adminPanel").style.display = "block";
+            
+            products.forEach((p, i) => {
+                document.getElementById("product-container").innerHTML += `
                     <div class="card">
+                        <img src="${p.images[p.idx]}" class="product-img" onclick="window.open('${p.images[p.idx]}')">
                         <h3>${p.name}</h3>
                         <p>Price: Rs. ${p.price}</p>
-                        <img src="${p.img}" class="product-img">
+                        <button class="nav-btn" onclick="nextImg(${i})">Next Image (${p.idx + 1}/${p.images.length})</button>
                     </div>`;
             });
         }
