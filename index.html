@@ -2,53 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PATHAN BRAND.</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
-        .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        body { font-family: sans-serif; background: #f4f4f4; padding: 15px; }
+        .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #000; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         
-        /* Product Slider */
-        .img-container { position: relative; }
-        .product-img { width: 100%; height: 300px; object-fit: cover; border-radius: 10px; }
-        .slider-btn { position: absolute; top: 50%; width: auto; background: rgba(0,0,0,0.5); padding: 10px; }
+        /* Slider & Image Styles */
+        .slider-container { position: relative; width: 100%; }
+        .product-img { width: 100%; height: 300px; object-fit: cover; border-radius: 8px; cursor: zoom-in; }
+        .controls { display: flex; gap: 5px; margin-top: 5px; }
         
-        /* Admin Panel Hidden */
-        #adminPanel { display: none; border: 2px dashed #2563eb; padding: 15px; margin-bottom: 20px; }
+        #adminPanel { display: none; border: 2px dashed #000; padding: 15px; margin-bottom: 20px; background: #fff; }
     </style>
 </head>
 <body>
 
     <div id="loginSection" class="card">
-        <h3>Welcome to Pathan Brand</h3>
-        <input type="text" id="mobileInput" placeholder="Enter Mobile Number (03XXXXXXXXX)" maxlength="11">
-        <button onclick="loginUser()">Verify & Login</button>
+        <h3>Login to Pathan Brand</h3>
+        <input type="text" id="mobileInput" placeholder="03XXXXXXXXX" maxlength="11">
+        <button onclick="loginUser()">Login</button>
     </div>
 
     <div id="adminPanel" class="card">
-        <h3 style="color: #2563eb;">CEO OFFICE - Add New Product</h3>
+        <h3>🔑 CEO OFFICE</h3>
+        <select id="pCat">
+            <option value="Women Clothing">Women Clothing</option>
+            <option value="Cosmetics">Cosmetics</option>
+            <option value="Home & Kitchen">Home & Kitchen</option>
+        </select>
         <input type="text" id="pName" placeholder="Product Name">
         <input type="number" id="pPrice" placeholder="Price">
         <input type="file" id="pImages" multiple accept="image/*">
-        <button onclick="saveProduct()" style="background: #059669;">Upload Product</button>
-        <button onclick="clearProducts()" style="background: #dc2626; margin-top: 10px;">Delete All Data</button>
+        <button onclick="saveProduct()" style="background: green;">Add Product</button>
     </div>
 
     <div id="product-container"></div>
-
-    <button id="adminTrigger" onclick="checkAdmin()" style="position:fixed; bottom:20px; right:20px; width:auto; background: #333;">🔑 Admin Panel</button>
+    <button onclick="checkAdmin()" style="position:fixed; bottom:10px; right:10px; width:auto; background: #333;">Admin Access</button>
 
     <script>
         let products = JSON.parse(localStorage.getItem("products") || "[]");
 
         function loginUser() {
-            let m = document.getElementById("mobileInput").value;
-            if(/^03\d{9}$/.test(m)) {
+            if(/^03\d{9}$/.test(document.getElementById("mobileInput").value)) {
                 localStorage.setItem("userLoggedIn", "true");
                 location.reload();
-            } else { alert("Please enter a valid Pakistani number (03...)"); }
+            } else { alert("Sahi Pakistani number likhein!"); }
         }
 
         function checkAdmin() {
@@ -56,53 +56,58 @@
             if(pass === "p@th@nk1ng") {
                 localStorage.setItem("isAdmin", "true");
                 location.reload();
-            } else { alert("Access Denied!"); }
+            } else { alert("Wrong Password!"); }
         }
 
-        function saveProduct() {
+        async function saveProduct() {
             let files = document.getElementById("pImages").files;
-            if(files.length === 0) return alert("Select at least one image!");
+            if(files.length === 0) return alert("Select 4-5 images!");
             
-            let readerPromises = Array.from(files).map(file => new Promise(res => {
-                let reader = new FileReader();
-                reader.onload = e => res(e.target.result);
-                reader.readAsDataURL(file);
-            }));
-
-            Promise.all(readerPromises).then(images => {
-                products.push({ name: document.getElementById("pName").value, price: document.getElementById("pPrice").value, images, idx: 0 });
-                localStorage.setItem("products", JSON.stringify(products));
-                location.reload();
+            let images = [];
+            for(let file of files) {
+                images.push(await new Promise(r => {
+                    let reader = new FileReader();
+                    reader.onload = e => r(e.target.result);
+                    reader.readAsDataURL(file);
+                }));
+            }
+            
+            products.push({ 
+                cat: document.getElementById("pCat").value,
+                name: document.getElementById("pName").value, 
+                price: document.getElementById("pPrice").value, 
+                images, idx: 0 
             });
+            localStorage.setItem("products", JSON.stringify(products));
+            location.reload();
         }
 
-        function nextImg(pIdx) {
-            products[pIdx].idx = (products[pIdx].idx + 1) % products[pIdx].images.length;
+        function changeImg(pIdx, step) {
+            products[pIdx].idx = (products[pIdx].idx + step + products[pIdx].images.length) % products[pIdx].images.length;
             localStorage.setItem("products", JSON.stringify(products));
             displayProducts();
         }
 
-        function clearProducts() {
-            if(confirm("Confirm Delete All?")) { localStorage.removeItem("products"); location.reload(); }
-        }
-
         function displayProducts() {
             let container = document.getElementById("product-container");
-            container.innerHTML = "";
+            container.innerHTML = "<h2>Catalog</h2>";
             products.forEach((p, i) => {
                 container.innerHTML += `
                     <div class="card">
-                        <div class="img-container">
-                            <img src="${p.images[p.idx]}" class="product-img">
-                            <button class="slider-btn" style="right:0;" onclick="nextImg(${i})">Next ▶</button>
+                        <small>${p.cat}</small>
+                        <div class="slider-container">
+                            <img src="${p.images[p.idx]}" class="product-img" onclick="window.open(this.src)">
+                        </div>
+                        <div class="controls">
+                            <button onclick="changeImg(${i}, -1)">Prev</button>
+                            <button onclick="changeImg(${i}, 1)">Next (${p.idx + 1}/${p.images.length})</button>
                         </div>
                         <h3>${p.name}</h3>
-                        <p style="color: green; font-weight: bold;">Price: Rs. ${p.price}</p>
+                        <p>Rs. ${p.price}</p>
                     </div>`;
             });
         }
 
-        // INIT
         if(localStorage.getItem("userLoggedIn") === "true") {
             document.getElementById("loginSection").style.display = "none";
             if(localStorage.getItem("isAdmin") === "true") document.getElementById("adminPanel").style.display = "block";
